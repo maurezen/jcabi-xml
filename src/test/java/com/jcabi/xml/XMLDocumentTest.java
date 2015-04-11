@@ -374,4 +374,19 @@ public final class XMLDocumentTest {
         );
     }
 
+    /**
+     * XMLDocument can preserve immutability.
+     * @throws Exception If something goes wrong inside
+     */
+    @Test
+    public void preservesImmutability() throws Exception {
+        final XML xml = new XMLDocument("<r1><a/></r1>");
+        final Node node = xml.nodes("/r1/a").get(0).node();
+        node.appendChild(node.getOwnerDocument().createElement("h9"));
+        MatcherAssert.assertThat(
+            xml,
+            XhtmlMatchers.hasXPath("/r1/a[not(hey-you)]")
+        );
+    }
+
 }

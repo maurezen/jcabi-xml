@@ -29,59 +29,33 @@
  */
 package com.jcabi.xml;
 
-import com.jcabi.aspects.Immutable;
-import java.util.Collection;
-import javax.validation.constraints.NotNull;
-import lombok.EqualsAndHashCode;
+import java.io.InputStream;
+import org.w3c.dom.ls.LSInput;
+import org.w3c.dom.ls.LSResourceResolver;
 
 /**
- * Chain of {@link XSL} stylesheets.
+ * {@link org.w3c.dom.ls.LSResourceResolver} implementation
+ * supporting classpath lookups.
  *
- * @author Yegor Bugayenko (yegor@tpc2.com)
+ * @author Adam Siemion (adam.siemion.null@lemonsoftware.pl)
  * @version $Id$
- * @since 0.12
  */
-@Immutable
-@EqualsAndHashCode(of = "sheets")
-public final class XSLChain implements XSL {
-
-    /**
-     * XSL sheets.
-     */
-    @Immutable.Array
-    private final transient XSL[] sheets;
-
-    /**
-     * Public ctor.
-     * @param shts Sheets
-     */
-    public XSLChain(@NotNull(message = "list of stylesheets can't be NULL")
-        final Collection<XSL> shts) {
-        this.sheets = shts.toArray(new XSL[shts.size()]);
-    }
-
+class ClasspathResolver implements LSResourceResolver {
     @Override
-    public XML transform(@NotNull(message = "XML can't be NULL")
-        final XML xml) {
-        XML output = xml;
-        for (final XSL sheet : this.sheets) {
-            output = sheet.transform(output);
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
+    // @checkstyle ParameterNumber (1 line)
+    public LSInput resolveResource(
+        final String type,
+        final String namespaceuri,
+        final String publicid,
+        final String systemid,
+        final String baseuri
+    ) {
+        final InputStream stream = getClass().getResourceAsStream(systemid);
+        LSInput input = null;
+        if (stream != null) {
+            input = new ClasspathInput(publicid, systemid, stream);
         }
-        return output;
-    }
-
-    @Override
-    public String applyTo(final XML xml) {
-        throw new UnsupportedOperationException("#applyTo()");
-    }
-
-    @Override
-    public XSL with(final Sources src) {
-        throw new UnsupportedOperationException("#with()");
-    }
-
-    @Override
-    public XSL with(final String name, final String value) {
-        throw new UnsupportedOperationException("#with(name, value)");
+        return input;
     }
 }
